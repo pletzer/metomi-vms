@@ -1,11 +1,6 @@
 #!/bin/bash
 set -eu
 
-if [[ $USER != root ]]; then
-  echo "Please run this command via sudo"
-  exit 1
-fi
-
 set_default=false
 make_docs=false
 while [[ $# != 0 ]]; do
