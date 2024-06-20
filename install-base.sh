@@ -263,68 +263,70 @@ elif [[ $dist == redhat ]]; then
   service httpd start || error
   chkconfig --level 345 httpd on || error
 fi
-# cylc review needs to be able to access cylc-run directory
-chmod 755 /home/vagrant
-sudo -u $(logname) mkdir -p /home/vagrant/cylc-run
-# Setup the rosie repository
-mkdir /srv/svn
-if [[ $dist == ubuntu ]]; then
-  sudo chown www-data /srv/svn
-  sudo -u www-data svnadmin create /srv/svn/roses-tmp
-elif [[ $dist == redhat ]]; then
-  sudo chown apache /srv/svn
-  sudo -u apache svnadmin create /srv/svn/roses-tmp
-fi
-htpasswd -b -c /srv/svn/auth.htpasswd vagrant vagrant || error
-# Cache the password
-sudo -u $(logname) mkdir -p /home/vagrant/.subversion/auth/svn.simple
-realm="<http://localhost:80> Subversion repository"
-cache_id=$(echo -n "${realm}" | md5sum | cut -f1 -d " ")
-sudo -u $(logname) bash -c "cat >/home/vagrant/.subversion/auth/svn.simple/${cache_id}" <<EOF
-K 8
-passtype
-V 6
-simple
-K 8
-password
-V 7
-vagrant
-K 15
-svn:realmstring
-V ${#realm}
-${realm}
-K 8
-username
-V 7
-vagrant
-END
-EOF
-cd /home/vagrant
-sudo -H -u $(logname) bash -c 'svn co -q http://localhost/svn/roses-tmp'
-sudo -H -u $(logname) bash -c 'svn ps fcm:layout -F - roses-tmp' <<EOF
-depth-project = 5
-depth-branch = 1
-depth-tag = 1
-dir-trunk = trunk
-dir-branch =
-dir-tag =
-level-owner-branch =
-level-owner-tag =
-template-branch =
-template-tag =
-EOF
-sudo -H -u $(logname) bash -c 'svn ci -m "fcm:layout: defined." roses-tmp'
-rm -rf roses-tmp
-mkdir -p /opt/metomi-site/etc/hooks
-dos2unix -n /vagrant/opt/metomi-site/etc/hooks/pre-commit /opt/metomi-site/etc/hooks/pre-commit
-ln -sf /opt/metomi-site/etc/hooks/pre-commit /srv/svn/roses-tmp/hooks/pre-commit
-dos2unix -n /vagrant/opt/metomi-site/etc/hooks/post-commit /opt/metomi-site/etc/hooks/post-commit
-ln -sf /opt/metomi-site/etc/hooks/post-commit /srv/svn/roses-tmp/hooks/post-commit
-if [[ $dist == ubuntu ]]; then
-  sudo -u www-data /opt/rose/sbin/rosa db-create || error
-elif [[ $dist == redhat ]]; then
-  sudo -u apache /opt/rose/sbin/rosa db-create || error
-fi
+
+
+# # cylc review needs to be able to access cylc-run directory
+# chmod 755 /home/vagrant
+# sudo -u $(logname) mkdir -p /home/vagrant/cylc-run
+# # Setup the rosie repository
+# mkdir /srv/svn
+# if [[ $dist == ubuntu ]]; then
+#   sudo chown www-data /srv/svn
+#   sudo -u www-data svnadmin create /srv/svn/roses-tmp
+# elif [[ $dist == redhat ]]; then
+#   sudo chown apache /srv/svn
+#   sudo -u apache svnadmin create /srv/svn/roses-tmp
+# fi
+# htpasswd -b -c /srv/svn/auth.htpasswd vagrant vagrant || error
+# # Cache the password
+# sudo -u $(logname) mkdir -p /home/vagrant/.subversion/auth/svn.simple
+# realm="<http://localhost:80> Subversion repository"
+# cache_id=$(echo -n "${realm}" | md5sum | cut -f1 -d " ")
+# sudo -u $(logname) bash -c "cat >/home/vagrant/.subversion/auth/svn.simple/${cache_id}" <<EOF
+# K 8
+# passtype
+# V 6
+# simple
+# K 8
+# password
+# V 7
+# vagrant
+# K 15
+# svn:realmstring
+# V ${#realm}
+# ${realm}
+# K 8
+# username
+# V 7
+# vagrant
+# END
+# EOF
+# cd /home/vagrant
+# sudo -H -u $(logname) bash -c 'svn co -q http://localhost/svn/roses-tmp'
+# sudo -H -u $(logname) bash -c 'svn ps fcm:layout -F - roses-tmp' <<EOF
+# depth-project = 5
+# depth-branch = 1
+# depth-tag = 1
+# dir-trunk = trunk
+# dir-branch =
+# dir-tag =
+# level-owner-branch =
+# level-owner-tag =
+# template-branch =
+# template-tag =
+# EOF
+# sudo -H -u $(logname) bash -c 'svn ci -m "fcm:layout: defined." roses-tmp'
+# rm -rf roses-tmp
+# mkdir -p /opt/metomi-site/etc/hooks
+# dos2unix -n /vagrant/opt/metomi-site/etc/hooks/pre-commit /opt/metomi-site/etc/hooks/pre-commit
+# ln -sf /opt/metomi-site/etc/hooks/pre-commit /srv/svn/roses-tmp/hooks/pre-commit
+# dos2unix -n /vagrant/opt/metomi-site/etc/hooks/post-commit /opt/metomi-site/etc/hooks/post-commit
+# ln -sf /opt/metomi-site/etc/hooks/post-commit /srv/svn/roses-tmp/hooks/post-commit
+# if [[ $dist == ubuntu ]]; then
+#   sudo -u www-data /opt/rose/sbin/rosa db-create || error
+# elif [[ $dist == redhat ]]; then
+#   sudo -u apache /opt/rose/sbin/rosa db-create || error
+# fi
 
 #### Miscellaneous utilities
 dos2unix -n /vagrant/usr/local/bin/install-iris /usr/local/bin/install-iris
