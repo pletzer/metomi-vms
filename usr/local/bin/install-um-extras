@@ -7,12 +7,13 @@ ubuntu_major=$(lsb_release -rs | cut -d. -f1)
 
 function usage {
   # Print command line options
-  echo 'Usage: install-um-extras [-e|--eccodes] [-g|--grib-api] [-v|--version <x.y>]'
+  echo 'Usage: install-um-extras [-e|--eccodes] [-g|--grib-api] [-v|--version <x.y>] [-d|--output_dir <dr>]'
   echo 'Options:'
   echo '  -e, --eccodes        Install the EcCodes GRIB library'
   echo '  -g, --grib-api       Install the GRIB-API GRIB library'
   echo '  -h, --help           Show this help and exit'
   echo '  -v, --version <x.y>  Install packages for the selected UM version'
+  echo '  -d, --output_dir <dr> Install the package in the selected directory
   echo
   echo 'This script will install the packages necessary for using the UM and UMDPs.'
   echo "The packages required for the UM's GRIB functionality vary by UM version:"
@@ -56,7 +57,7 @@ function process_args {
     case "$1" in
       -d|--output_dir)
           output_dir=$1
-          echo "info: will install the software under $output_dir"
+          ereport "info: will install the software under $output_dir"
           ;;
       -e|--eccodes)
           if [ $ubuntu_major -lt 18 ]; then
@@ -87,8 +88,8 @@ function process_args {
           ;;
     esac
     shift
-    # Only 1 option at a time is permitted:
-    if [ $# -gt 1 ]; then
+    # Up to 2 options at a time are permitted:
+    if [ $# -gt 2 ]; then
       ereport "Too many arguments"
     fi
   fi
@@ -122,7 +123,7 @@ elif [ $ubuntu_major -eq 18 ]; then
 
     echo
     echo "Adding mule to the installed python packages..."
-    echo "$HOME/umdir/mule/lib" > /usr/lib/python2.7/dist-packages/mule.pth
+    echo "${output_dir}/umdir/mule/lib" > /usr/lib/python2.7/dist-packages/mule.pth
     
     echo
     echo "Installing UMDP dependencies..."
