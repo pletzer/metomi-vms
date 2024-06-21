@@ -15,6 +15,9 @@ if [[ ! -d ${MAMBAFORGE_DIR} ]]; then
   bash ${ROOTDIR}/Mambaforge.sh -p ${MAMBAFORGE_DIR} -b
   rm ${ROOTDIR}/Mambaforge.sh
   . "${MAMBAFORGE_DIR}/etc/profile.d/conda.sh"
+
+  micromamba activate /opt/deployment/mambaforge # pletzer
+
   mamba install -q -y conda-pack
 else
   . "${MAMBAFORGE_DIR}/etc/profile.d/conda.sh"

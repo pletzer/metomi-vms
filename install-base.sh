@@ -192,23 +192,23 @@ dos2unix -n /vagrant/usr/local/bin/install-rose /usr/local/bin/install-rose
 # Set the default to Cylc 7
 ln -sf /opt/cylc-7 /opt/cylc
 
-#### Configure syntax highlighting & bash completion
-sudo -u $(logname) mkdir -p /home/vagrant/.local/share/gtksourceview-3.0/language-specs/
-sudo -u $(logname) ln -sf /opt/cylc/conf/cylc.lang /home/vagrant/.local/share/gtksourceview-3.0/language-specs
-sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf.lang /home/vagrant/.local/share/gtksourceview-3.0/language-specs
-sudo -u $(logname) mkdir -p /home/vagrant/.vim/syntax
-sudo -u $(logname) ln -sf /opt/cylc/conf/cylc.vim /home/vagrant/.vim/syntax
-sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf.vim /home/vagrant/.vim/syntax
-sudo -u $(logname) dos2unix -n /vagrant/home/.vimrc /home/vagrant/.vimrc
-sudo -u $(logname) mkdir -p /home/vagrant/.emacs.d/lisp
-sudo -u $(logname) ln -sf /opt/cylc/conf/cylc-mode.el /home/vagrant/.emacs.d/lisp
-sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf-mode.el /home/vagrant/.emacs.d/lisp
-sudo -u $(logname) dos2unix -n /vagrant/home/.emacs /home/vagrant/.emacs
-if [[ $dist == redhat ]]; then
-  echo '[[ "$-" != *i* ]] && return # Stop here if not running interactively' >>/home/vagrant/.bashrc
-fi
-echo "[[ -f /opt/rose/etc/rose-bash-completion ]] && . /opt/rose/etc/rose-bash-completion" >>/home/vagrant/.bashrc
-echo "[[ -f /opt/cylc/conf/cylc-bash-completion ]] && . /opt/cylc/conf/cylc-bash-completion" >>/home/vagrant/.bashrc
+# #### Configure syntax highlighting & bash completion
+# sudo -u $(logname) mkdir -p /home/vagrant/.local/share/gtksourceview-3.0/language-specs/
+# sudo -u $(logname) ln -sf /opt/cylc/conf/cylc.lang /home/vagrant/.local/share/gtksourceview-3.0/language-specs
+# sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf.lang /home/vagrant/.local/share/gtksourceview-3.0/language-specs
+# sudo -u $(logname) mkdir -p /home/vagrant/.vim/syntax
+# sudo -u $(logname) ln -sf /opt/cylc/conf/cylc.vim /home/vagrant/.vim/syntax
+# sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf.vim /home/vagrant/.vim/syntax
+# sudo -u $(logname) dos2unix -n /vagrant/home/.vimrc /home/vagrant/.vimrc
+# sudo -u $(logname) mkdir -p /home/vagrant/.emacs.d/lisp
+# sudo -u $(logname) ln -sf /opt/cylc/conf/cylc-mode.el /home/vagrant/.emacs.d/lisp
+# sudo -u $(logname) ln -sf /opt/rose/etc/rose-conf-mode.el /home/vagrant/.emacs.d/lisp
+# sudo -u $(logname) dos2unix -n /vagrant/home/.emacs /home/vagrant/.emacs
+# if [[ $dist == redhat ]]; then
+#   echo '[[ "$-" != *i* ]] && return # Stop here if not running interactively' >>/home/vagrant/.bashrc
+# fi
+# echo "[[ -f /opt/rose/etc/rose-bash-completion ]] && . /opt/rose/etc/rose-bash-completion" >>/home/vagrant/.bashrc
+# echo "[[ -f /opt/cylc/conf/cylc-bash-completion ]] && . /opt/cylc/conf/cylc-bash-completion" >>/home/vagrant/.bashrc
 
 #### Configure cylc review & rosie web services (with a local rosie repository)
 if [[ $dist == ubuntu ]]; then
@@ -265,68 +265,68 @@ elif [[ $dist == redhat ]]; then
 fi
 
 
-# cylc review needs to be able to access cylc-run directory
-chmod 755 /home/vagrant
-sudo -u $(logname) mkdir -p /home/vagrant/cylc-run
-# Setup the rosie repository
-mkdir /srv/svn
-if [[ $dist == ubuntu ]]; then
-  sudo chown www-data /srv/svn
-  sudo -u www-data svnadmin create /srv/svn/roses-tmp
-elif [[ $dist == redhat ]]; then
-  sudo chown apache /srv/svn
-  sudo -u apache svnadmin create /srv/svn/roses-tmp
-fi
-htpasswd -b -c /srv/svn/auth.htpasswd vagrant vagrant || error
-# Cache the password
-sudo -u $(logname) mkdir -p /home/vagrant/.subversion/auth/svn.simple
-realm="<http://localhost:80> Subversion repository"
-cache_id=$(echo -n "${realm}" | md5sum | cut -f1 -d " ")
-sudo -u $(logname) bash -c "cat >/home/vagrant/.subversion/auth/svn.simple/${cache_id}" <<EOF
-K 8
-passtype
-V 6
-simple
-K 8
-password
-V 7
-vagrant
-K 15
-svn:realmstring
-V ${#realm}
-${realm}
-K 8
-username
-V 7
-vagrant
-END
-EOF
-cd /home/vagrant
-sudo -H -u $(logname) bash -c 'svn co -q http://localhost/svn/roses-tmp'
-sudo -H -u $(logname) bash -c 'svn ps fcm:layout -F - roses-tmp' <<EOF
-depth-project = 5
-depth-branch = 1
-depth-tag = 1
-dir-trunk = trunk
-dir-branch =
-dir-tag =
-level-owner-branch =
-level-owner-tag =
-template-branch =
-template-tag =
-EOF
-sudo -H -u $(logname) bash -c 'svn ci -m "fcm:layout: defined." roses-tmp'
-rm -rf roses-tmp
-mkdir -p /opt/metomi-site/etc/hooks
-dos2unix -n /vagrant/opt/metomi-site/etc/hooks/pre-commit /opt/metomi-site/etc/hooks/pre-commit
-ln -sf /opt/metomi-site/etc/hooks/pre-commit /srv/svn/roses-tmp/hooks/pre-commit
-dos2unix -n /vagrant/opt/metomi-site/etc/hooks/post-commit /opt/metomi-site/etc/hooks/post-commit
-ln -sf /opt/metomi-site/etc/hooks/post-commit /srv/svn/roses-tmp/hooks/post-commit
-if [[ $dist == ubuntu ]]; then
-  sudo -u www-data /opt/rose/sbin/rosa db-create || error
-elif [[ $dist == redhat ]]; then
-  sudo -u apache /opt/rose/sbin/rosa db-create || error
-fi
+# # cylc review needs to be able to access cylc-run directory
+# chmod 755 /home/vagrant
+# sudo -u $(logname) mkdir -p /home/vagrant/cylc-run
+# # Setup the rosie repository
+# mkdir /srv/svn
+# if [[ $dist == ubuntu ]]; then
+#   sudo chown www-data /srv/svn
+#   sudo -u www-data svnadmin create /srv/svn/roses-tmp
+# elif [[ $dist == redhat ]]; then
+#   sudo chown apache /srv/svn
+#   sudo -u apache svnadmin create /srv/svn/roses-tmp
+# fi
+# htpasswd -b -c /srv/svn/auth.htpasswd vagrant vagrant || error
+# # Cache the password
+# sudo -u $(logname) mkdir -p /home/vagrant/.subversion/auth/svn.simple
+# realm="<http://localhost:80> Subversion repository"
+# cache_id=$(echo -n "${realm}" | md5sum | cut -f1 -d " ")
+# sudo -u $(logname) bash -c "cat >/home/vagrant/.subversion/auth/svn.simple/${cache_id}" <<EOF
+# K 8
+# passtype
+# V 6
+# simple
+# K 8
+# password
+# V 7
+# vagrant
+# K 15
+# svn:realmstring
+# V ${#realm}
+# ${realm}
+# K 8
+# username
+# V 7
+# vagrant
+# END
+# EOF
+# cd /home/vagrant
+# sudo -H -u $(logname) bash -c 'svn co -q http://localhost/svn/roses-tmp'
+# sudo -H -u $(logname) bash -c 'svn ps fcm:layout -F - roses-tmp' <<EOF
+# depth-project = 5
+# depth-branch = 1
+# depth-tag = 1
+# dir-trunk = trunk
+# dir-branch =
+# dir-tag =
+# level-owner-branch =
+# level-owner-tag =
+# template-branch =
+# template-tag =
+# EOF
+# sudo -H -u $(logname) bash -c 'svn ci -m "fcm:layout: defined." roses-tmp'
+# rm -rf roses-tmp
+# mkdir -p /opt/metomi-site/etc/hooks
+# dos2unix -n /vagrant/opt/metomi-site/etc/hooks/pre-commit /opt/metomi-site/etc/hooks/pre-commit
+# ln -sf /opt/metomi-site/etc/hooks/pre-commit /srv/svn/roses-tmp/hooks/pre-commit
+# dos2unix -n /vagrant/opt/metomi-site/etc/hooks/post-commit /opt/metomi-site/etc/hooks/post-commit
+# ln -sf /opt/metomi-site/etc/hooks/post-commit /srv/svn/roses-tmp/hooks/post-commit
+# if [[ $dist == ubuntu ]]; then
+#   sudo -u www-data /opt/rose/sbin/rosa db-create || error
+# elif [[ $dist == redhat ]]; then
+#   sudo -u apache /opt/rose/sbin/rosa db-create || error
+# fi
 
 #### Miscellaneous utilities
 dos2unix -n /vagrant/usr/local/bin/install-iris /usr/local/bin/install-iris
