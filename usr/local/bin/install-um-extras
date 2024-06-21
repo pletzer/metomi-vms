@@ -50,15 +50,11 @@ function get_version {
   um_version=$((10*um_major + um_minor))
 }
 
-output_dir="/usr/local"
 function process_args {
   # Parse and process the command line arguments
+
   if [ $# -ge 1 ] ; then
     case "$1" in
-      -d|--output_dir)
-          output_dir=$1
-          ereport "info: will install the software under $output_dir"
-          ;;
       -e|--eccodes)
           if [ $ubuntu_major -lt 18 ]; then
             ereport "EcCodes installation requires Ubuntu 18 or later"
@@ -75,6 +71,7 @@ function process_args {
       -v|--version)
           shift
           get_version $1
+          output_dir=/usr/local/um${1}
           if [ $# -eq 0 ] ; then
             ereport "No UM version number provided"
           fi
@@ -89,7 +86,7 @@ function process_args {
     esac
     shift
     # Up to 2 options at a time are permitted:
-    if [ $# -gt 2 ]; then
+    if [ $# -gt 1 ]; then
       ereport "Too many arguments"
     fi
   fi
@@ -105,6 +102,8 @@ else
 fi
 
 process_args $@
+
+echo "dependencies will be stored in $output_dir"
 
 # Check chosen library is available:
 if [ $ubuntu_major -lt 18 ]; then
