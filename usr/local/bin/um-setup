@@ -185,8 +185,29 @@ get_source_tree "$gcom_src" "$tmpdir"        # Sets global $vn
 echo "Installing GCOM from: $gcom_src"
 
 cd $tmpdir/wc
-echo "Running rose stem to build GCOM..."
 
+# need to fix the compiler options for ubuntu 18 (and maybe other os's as well)
+gfortran_version=$(echo "__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__" | gfortran -E -cpp - 2>/dev/null | tail -n 1 | sed -e 's/ //g')
+gfortran_major_version=$(echo $gfortran_version | awk -F'.' '{print $1}')
+echo "Found gfortran version to be $gfortran_version (major version $gfortran_major_version)"
+# ubuntu 18 comes with gfortran 7.5, which misses some later options
+if [ "$gfortran_major_version" -le 7 ]; then
+  echo "Detecting gfortran 7... will fix compiler switches"
+  # edit the compiler flags
+  for m in vm32B_gfortran_serial.cfg vm_gfortran_serial.cfg vm_gfortran_mpich3.cfg; do
+    echo "Processing ./fcm-make/machines/$m ..."
+    # save a copy
+    cp ./fcm-make/machines/${m} ./fcm-make/machines/${m}.ori-vm
+    # gfortran 7.x does not support f2018
+    sed -i 's/-std=f2018/-std=f2008/' ./fcm-make/machines/${m}
+    # remove -fallow-argument-mismatch, supported by later versions
+    sed -i 's/-fallow-argument-mismatch//;' ./fcm-make/machines/${m}
+
+    diff ./fcm-make/machines/${m} ./fcm-make/machines/${m}.ori-vm
+  done
+fi
+
+echo "Running rose stem to build GCOM..."
 rose stem --quiet --group=all --name=gcom_install --new --no-gcontrol -- --no-detach
 if [ $? -ne 0 ]; then
   echo "Problem running GCOM rose stem suite."
@@ -194,7 +215,7 @@ if [ $? -ne 0 ]; then
   echo "or try http://localhost/cylc-review/taskjobs/$USER?&suite=gcom_install."
   exit 1
 fi
-echo "Suite output at http://localhost/cylc-review/taskjobs/$USER?&suite=gcom_install"
+#echo "Suite output at http://localhost/cylc-review/taskjobs/$USER?&suite=gcom_install"
 
 # copy dirs to right place (remember may have to overwrite...)
 gdir="$HOME/umdir/gcom"
