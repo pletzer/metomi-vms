@@ -7,13 +7,12 @@ ubuntu_major=$(lsb_release -rs | cut -d. -f1)
 
 function usage {
   # Print command line options
-  echo 'Usage: install-um-extras [-e|--eccodes] [-g|--grib-api] [-v|--version <x.y>] [-d|--output_dir <dr>]'
+  echo 'Usage: install-um-extras [-e|--eccodes] [-g|--grib-api] [-v|--version <x.y>]'
   echo 'Options:'
   echo '  -e, --eccodes        Install the EcCodes GRIB library'
   echo '  -g, --grib-api       Install the GRIB-API GRIB library'
   echo '  -h, --help           Show this help and exit'
   echo '  -v, --version <x.y>  Install packages for the selected UM version'
-  echo '  -d, --output_dir <dr> Install the package in the selected directory'
   echo
   echo 'This script will install the packages necessary for using the UM and UMDPs.'
   echo "The packages required for the UM's GRIB functionality vary by UM version:"
