@@ -113,6 +113,9 @@ process_args $@
 gcom_src=${gcom_src:-'fcm:gcom.x/trunk@head'}
 shumlib_src=${shumlib_src:-'fcm:shumlib.x/trunk@head'}
 
+# make sure to run cylc 7
+export CYLC_VERSION=7.9.9
+
 echo "Preparing the VM for running the Unified Model"
 echo
 
