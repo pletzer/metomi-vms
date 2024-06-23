@@ -58,7 +58,7 @@ fi
 
 # Use dos2unix in case any files have Windows EOL characters
 if [[ $dist == ubuntu ]]; then
-  apt-get -yq install less dos2unix || error
+  apt-get -yq install rsync less dos2unix || error
 elif [[ $dist == redhat ]]; then
   yum install -y dos2unix || error
 fi
