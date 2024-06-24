@@ -20,6 +20,8 @@ if [[ $dist == ubuntu || ($dist == redhat && $release != centos7) ]]; then
   curl -L -s -S https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.0.31.tar.bz2 | tar -xj || error
   cd gnupg-2.0.31
   if [[ ($dist == ubuntu && $release != 1604) ]]; then
+    # make sure to have curl/curl.h installed
+    apt-get install -yq libcurl4-nss-dev libcurl4-openssl-dev || error
     # add -I/usr/include/x86_64-linux-gnu/
     echo "*** checking existence of curl/curl.h..."
     ls -ltr /usr/include/x86_64-linux-gnu/
