@@ -2,9 +2,6 @@
 if [[ $dist == ubuntu || ($dist == redhat && $release != centos7) ]]; then
   if [[ $dist == ubuntu ]]; then
     apt-get install -q -y libgpg-error-dev libgcrypt20-dev libassuan-dev libksba-dev libpth-dev zlib1g-dev || error
-    if [[ $release != 1604 ]]; then
-      apt-get remove -q -y --auto-remove --purge gpg-agent || error
-    fi
   else
     yum install -y zlib-devel libgpg-error-devel libgcrypt-devel libassuan-devel libksba-devel || error
     wget -q ftp://ftp.gnu.org/gnu/pth/pth-2.0.7.tar.gz || error
@@ -20,14 +17,7 @@ if [[ $dist == ubuntu || ($dist == redhat && $release != centos7) ]]; then
   curl -L -s -S https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-2.0.31.tar.bz2 | tar -xj || error
   cd gnupg-2.0.31
   if [[ ($dist == ubuntu && $release != 1604) ]]; then
-    # make sure to have curl/curl.h installed
-    # apt-get install -yq libcurl4-nss-dev libcurl4-openssl-dev || error
-    apt-get install -yq libcurl4-openssl-dev || error
-    # add -I/usr/include/x86_64-linux-gnu/
-    echo "*** checking existence of curl/curl.h..."
-    ls -ltr /usr/include/x86_64-linux-gnu/
-    ls -ltr /usr/include/x86_64-linux-gnu/curl
-    ./configure CFLAGS="-fcommon -I/usr/include/x86_64-linux-gnu/" || error
+    configure CFLAGS="$CFLAGS -fcommon $(curl-config --cflags)" LDFLAGS="$LDFLAGS $(curl-config --libs)" || error
   else
     ./configure || error
   fi
@@ -35,6 +25,9 @@ if [[ $dist == ubuntu || ($dist == redhat && $release != centos7) ]]; then
   make install || error
   cd ..
   rm -r gnupg-2.0.31
+  if [[ $release != 1604 ]]; then
+    apt-get remove -q -y --auto-remove --purge gpg-agent || error
+  fi
 fi
 # Add script that caches the user's Science Repository Service password for the session
 dos2unix -n /vagrant/usr/local/bin/mosrs-cache-password /usr/local/bin/mosrs-cache-password
