@@ -103,6 +103,7 @@ fi
 process_args $@
 
 echo "dependencies will be stored in $output_dir"
+mkdir -p $output_dir
 
 # Check chosen library is available:
 if [ $ubuntu_major -lt 18 ]; then
