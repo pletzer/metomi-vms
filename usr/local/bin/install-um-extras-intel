@@ -107,7 +107,7 @@ mkdir -p $output_dir/umdir
 
 echo "Installing hdf5..."
 #apt-get install -y libnetcdf-dev libhdf5-serial-dev netcdf-bin
-apt-get install libhdf5-mpich-dev
+apt-get -qy install libhdf5-mpich-dev
 
 echo "Installing parallel yaxt..."
 yaxt_version=0.9.0
