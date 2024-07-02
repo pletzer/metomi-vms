@@ -103,14 +103,7 @@ fi
 process_args $@
 
 echo "dependencies will be stored in $output_dir"
-mkdir -p $output_dir
-
-# Check chosen library is available:
-if [ $ubuntu_major -lt 18 ]; then
-  if [ "$grib_library" = "libeccodes-dev" ]; then
-    ereport "The EcCodes library is not available at this Ubuntu release.
-Upgrade to Ubuntu 18.04 or later, or supply -v <x.y> to use UM 11.1 or earlier."
-  fi
+mkdir -p $output_dir/umdir
 
 echo "Installing hdf5..."
 #apt-get install -y libnetcdf-dev libhdf5-serial-dev netcdf-bin
@@ -202,6 +195,13 @@ cp inc/* /usr/include
 cd ..
 rm -r XIOS
 
+
+# Check chosen library is available:
+if [ $ubuntu_major -lt 18 ]; then
+  if [ "$grib_library" = "libeccodes-dev" ]; then
+    ereport "The EcCodes library is not available at this Ubuntu release.
+Upgrade to Ubuntu 18.04 or later, or supply -v <x.y> to use UM 11.1 or earlier."
+  fi
 
 elif [ $ubuntu_major -eq 18 ]; then
     # Settings for Ubuntu 18.04
