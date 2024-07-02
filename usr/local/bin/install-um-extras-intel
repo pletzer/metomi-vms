@@ -105,96 +105,219 @@ process_args $@
 echo "dependencies will be stored in $output_dir"
 mkdir -p $output_dir/umdir
 
-echo "Installing hdf5..."
-#apt-get install -y libnetcdf-dev libhdf5-serial-dev netcdf-bin
-apt-get -qy install libhdf5-mpich-dev
 
-echo "Installing parallel yaxt..."
-yaxt_version=0.9.0
-yaxt_sha256=d3673e88c1cba3b77e0821393b94b5952d8ed7dc494305c8cf93e7ebec19483c
-# The configure script needs to run an MPI test executable which can fail if hostname is not recognised
-cp /etc/hosts /etc/hosts.bak
-hostname_current=$(hostname)
-echo "127.0.0.1 ${hostname_current}" > /etc/hosts
-echo "::1       ${hostname_current}" >> /etc/hosts
-cd /usr/src
-wget https://www.dkrz.de/redmine/attachments/download/498/yaxt-${yaxt_version}.tar.gz
-echo "${yaxt_sha256} yaxt-${yaxt_version}.tar.gz" | sha256sum --check
-tar -xf yaxt-${yaxt_version}.tar.gz
-mkdir yaxt-${yaxt_version}_build
-cd yaxt-${yaxt_version}_build
-../yaxt-${yaxt_version}/configure --with-idxtype=long CC=mpicc FC=mpif90 FPP="mpif90 -E -cpp"
+# versions
+HDF5_VERSION="1.14.3"
+NETCDF_C_VERSION="4.9.2"
+NETCDF_FORTRAN_VERSION="4.6.1"
+NETCDF_CXX_VERSION="4.3.1"
+PNETCDF_VERSION="1.12.3"
+LIBPNG_VERSION="1.2.59"
+JASPER_VERSION="1.900.1"
+LIBAEC_VERSION="1.1.3"
+ECCODES_VERSION="2.35.0"
+SHUMLIB_VERSION="13.0"
+OASIS_MCT_VERSION="5.1"
+
+export DEPS_DIR=/usr/local/intel
+
+# compilers
+# cannot yet use icx and icpx
+export CC=icc
+export CXX=icpx
+export FC=ifort
+export F77=ifort
+export MPICC='mpiicc -cc=icc'
+export MPICXX='mpiicc -cxx=icpx'
+export MPIF77=mpiifort
+export MPIF90=mpiifort
+
+export NETCDF=$DEPS_DIR
+export HDF5=$DEPS_DIR
+export PNETCDF=$DEPS_DIR
+
+export LD_LIBRARY_PATH="$DEPS_DIR/lib:$LD_LIBRARY_PATH"
+
+mkdir -p $DEPS_DIR
+mkdir -p ${DEPS_DIR}/bin
+
+
+# libpng
+cd $DEPS_DIR
+wget https://sourceforge.net/projects/libpng/files/libpng12/1.2.59/libpng-${LIBPNG_VERSION}.tar.xz/download
+tar xf download
+rm -rf download
+cd libpng-${LIBPNG_VERSION}
+./configure --prefix=$DEPS_DIR
 make -j 4
 make install
 cd ..
-rm -r yaxt-${yaxt_version}.tar.gz yaxt-${yaxt_version} yaxt-${yaxt_version}_build
-# Reset hosts file
-cat /etc/hosts.bak > /etc/hosts
-rm /etc/hosts.bak
+rm -rf libpng-${LIBPNG_VERSION}
 
-echo "Installing netcdf with parallel HDF5"
-ncc_version=4.7.4
-ncc_sha256=99930ad7b3c4c1a8e8831fb061cb02b2170fc8e5ccaeda733bd99c3b9d31666b
-cd /usr/src
-wget https://github.com/Unidata/netcdf-c/archive/v${ncc_version}.tar.gz
-echo "${ncc_sha256} v${ncc_version}.tar.gz" | sha256sum --check
-tar -xf v${ncc_version}.tar.gz
-mkdir netcdf-c-${ncc_version}_build
-cd netcdf-c-${ncc_version}_build
-../netcdf-c-${ncc_version}/configure CC=mpicc CXX=mpicxx FF=mpif90 FC=mpif90 CFLAGS="-I/usr/include/hdf5/mpich" \
-    LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/mpich -Wl,-rpath=/usr/lib/x86_64-linux-gnu/hdf5/mpich"
+# jasper
+cd $DEPS_DIR
+wget https://www2.mmm.ucar.edu/wrf/OnLineTutorial/compile_tutorial/tar_files/jasper-${JASPER_VERSION}.tar.gz
+tar xf jasper-${JASPER_VERSION}.tar.gz
+rm jasper-${JASPER_VERSION}.tar.gz
+cd jasper-${JASPER_VERSION}
+./configure --prefix=$DEPS_DIR
 make -j 4
 make install
 cd ..
-rm -r v${ncc_version}.tar.gz netcdf-c-${ncc_version} netcdf-c-${ncc_version}_build
+rm -rf jasper-${JASPER_VERSION}
 
-echo "Installing netcdf-fortran with paralle HDF5"
-ncf_version=4.5.3
-ncf_sha256=c6da30c2fe7e4e614c1dff4124e857afbd45355c6798353eccfa60c0702b495a
-cd /usr/src
-wget https://github.com/Unidata/netcdf-fortran/archive/v${ncf_version}.tar.gz
-echo "${ncf_sha256} v${ncf_version}.tar.gz" | sha256sum --check
-tar -xf v${ncf_version}.tar.gz
-mkdir netcdf-fortran-${ncf_version}_build
-cd netcdf-fortran-${ncf_version}_build
-../netcdf-fortran-${ncf_version}/configure CC=mpicc CXX=mpicxx FF=mpif90 FC=mpif90
+# hdf5
+cd $DEPS_DIR
+HDF5_VERSION_SHORT=$(echo $HDF5_VERSION | awk -F '.' '{print $1"."$2}')
+wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION_SHORT}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
+tar xf hdf5-${HDF5_VERSION}.tar.gz
+rm hdf5-${HDF5_VERSION}.tar.gz
+cd hdf5-${HDF5_VERSION}
+mkdir build
+cd build
+CC=$MPICC FC=$MPIF90 ../configure --prefix=$DEPS_DIR --enable-parallel --enable-fortran
 make -j 4
 make install
-cd ..
-rm -r v${ncf_version}.tar.gz netcdf-fortran-${ncf_version} netcdf-fortran-${ncf_version}_build
+cd ../..
+rm -rf hdf5-${HDF5_VERSION}
+ls $DEPS_DIR/lib
+ls $DEPS_DIR/include
+ls $DEPS_DIR/bin
 
-echo "Installing netcdf-cxx with parallel HDF5"
-nccxx_version=4.3.1
-nccxx_sha256=e3fe3d2ec06c1c2772555bf1208d220aab5fee186d04bd265219b0bc7a978edc
-cd /usr/src
-wget https://github.com/Unidata/netcdf-cxx4/archive/v${nccxx_version}.tar.gz
-echo "${nccxx_sha256} v${nccxx_version}.tar.gz" | sha256sum --check
-tar -xf v${nccxx_version}.tar.gz
-mkdir netcdf-cxx4-${nccxx_version}_build
-cd netcdf-cxx4-${nccxx_version}_build
-../netcdf-cxx4-${nccxx_version}/configure CC=mpicc CXX=mpicxx FF=mpif90 FC=mpif90 CFLAGS="-I/usr/include/hdf5/mpich" \
-    LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib"
+# netcdf-c
+wget https://downloads.unidata.ucar.edu/netcdf-c/${NETCDF_C_VERSION}/netcdf-c-${NETCDF_C_VERSION}.tar.gz
+tar xf netcdf-c-${NETCDF_C_VERSION}.tar.gz
+rm netcdf-c-${NETCDF_C_VERSION}.tar.gz
+cd netcdf-c-${NETCDF_C_VERSION}
+mkdir build
+cd build
+CPPFLAGS="-I${DEPS_DIR}/include" \
+    LDFLAGS="-L${DEPS_DIR}/lib -lhdf5 -lhdf5_hl" \
+    CC=$MPICC ../configure --prefix=$DEPS_DIR 
 make -j 4
 make install
-cd ..
-rm -r v${nccxx_version}.tar.gz netcdf-cxx4-${nccxx_version} netcdf-cxx4-${nccxx_version}_build
+cd ../..
+rm -rf netcdf-c-${NETCDF_C_VERSION}
+ls $DEPS_DIR/lib
+ls $DEPS_DIR/include
+ls $DEPS_DIR/bin
 
-echo "Installing XIOS..."
-xios_revision=1866
-cd /usr/src
-ln -s /usr/bin/make /usr/bin/gmake
-svn co http://forge.ipsl.jussieu.fr/ioserver/svn/XIOS/trunk@${xios_revision} XIOS
-cd XIOS
-echo "export HDF5_INC_DIR=/usr/include/hdf5/mpich" > arch/arch-GCC_LINUX.env
-echo "export HDF5_LIB_DIR=/usr/lib/x86_64-linux-gnu/hdf5/mpich" >> arch/arch-GCC_LINUX.env
-echo "export NETCDF_INC_DIR=/usr/local/include" >> arch/arch-GCC_LINUX.env
-echo "export NETCDF_LIB_DIR=/usr/local/lib" >> arch/arch-GCC_LINUX.env
-./make_xios --full --arch GCC_LINUX --job 4
-cp lib/libxios.a /usr/lib
-cp inc/* /usr/include
-cd ..
-rm -r XIOS
+# netcdf-fortran
+wget https://downloads.unidata.ucar.edu/netcdf-fortran/${NETCDF_FORTRAN_VERSION}/netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+tar xf netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+rm netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
+mkdir build
+cd build
+CPPFLAGS="$(${DEPS_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${DEPS_DIR}/bin/nc-config --libs)" \
+../configure --prefix=$DEPS_DIR
+make
+make install
+cd ../..
+rm -rf netcdf-fortran-${NETCDF_FORTRAN_VERSION}
 
+# netcdf-c++
+cd $DEPS_DIR
+wget https://downloads.unidata.ucar.edu/netcdf-cxx/${NETCDF_CXX_VERSION}/netcdf-cxx4-${NETCDF_CXX_VERSION}.tar.gz
+tar xf netcdf-cxx4-${NETCDF_CXX_VERSION}.tar.gz
+rm netcdf-cxx4-${NETCDF_CXX_VERSION}.tar.gz
+cd netcdf-cxx4-${NETCDF_CXX_VERSION}
+mkdir build
+cd build
+CC=$CC CXX=$CXX CPPFLAGS="$(${DEPS_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${DEPS_DIR}/bin/nc-config --libs)" \
+../configure --prefix=$DEPS_DIR
+make
+make install
+cd ../..
+rm -rf netcdf-cxx4-${NETCDF_CXX_VERSION}
+ls $DEPS_DIR/lib
+ls $DEPS_DIR/include
+ls $DEPS_DIR/bin
+
+# pnetcdf
+wget https://parallel-netcdf.github.io/Release/pnetcdf-${PNETCDF_VERSION}.tar.gz
+tar xf pnetcdf-${PNETCDF_VERSION}.tar.gz
+rm pnetcdf-${PNETCDF_VERSION}.tar.gz
+cd pnetcdf-${PNETCDF_VERSION}
+mkdir build
+cd build
+../configure --prefix=$DEPS_DIR --with-netcdf4=$DEPS_DIR
+make
+make install
+cd ../..
+rm -rf pnetcdf-${PNETCDF_VERSION}
+ls $DEPS_DIR/lib
+ls $DEPS_DIR/include
+ls $DEPS_DIR/bin
+
+# libaec, used by ecCodes
+cd $DEPS_DIR
+wget https://gitlab.dkrz.de/k202009/libaec/-/archive/v1.1.3/libaec-v${LIBAEC_VERSION}.tar.gz
+tar xf libaec-v${LIBAEC_VERSION}.tar.gz
+rm libaec-v${LIBAEC_VERSION}.tar.gz
+cd libaec-v${LIBAEC_VERSION}/
+mkdir build
+cd build/
+FC=$FC CC=$CC CXX=$CXX  cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
+make
+make install
+cd ../..
+rm -rf libaec-v${LIBAEC_VERSION}
+
+    # ecCodes
+    cd $DEPS_DIR
+    wget https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz
+    tar xvf eccodes-${ECCODES_VERSION}-Source.tar.gz
+    rm eccodes-${ECCODES_VERSION}-Source.tar.gz
+    cd eccodes-${ECCODES_VERSION}-Source
+    mkdir build
+    cd build
+    FC=$FC CC=$CC CXX=$CXX cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
+    make 
+    make install
+    cd ../..
+    rm -rf eccodes-${ECCODES_VERSION}-Source
+
+    # shumlib
+    cd $DEPS_DIR
+    wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
+    tar xf um${SHUMLIB_VERSION}.tar.gz
+    rm um${SHUMLIB_VERSION}.tar.gz
+    cd shumlib-um${SHUMLIB_VERSION}
+    export SHUM_OPENMP=true
+    export LIBDIR_OUT=$DEPS_DIR
+    cat make/vm-x86-gfortran-gcc.mk | \
+        perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
+         > make/vm-x86-ifort-icc.mk
+
+    for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
+               'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
+               'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
+               'shum_spiral_search' 'shum_thread_utils'; do
+            echo $lib
+            make -f make/vm-x86-ifort-icc.mk $lib
+    done
+    cd ..
+    rm -rf shumlib-um${SHUMLIB_VERSION}
+
+    # OASIS-MTC
+    cd $DEPS_DIR
+    #git clone --branch OASIS3-MCT_$OASIS_MCT_VERSION https://gitlab.com/cerfacs/oasis3-mct.git
+    git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    cd oasis3-mct
+    git fetch --all
+    git checkout OASIS3-MCT_$OASIS_MCT_VERSION
+    cd util/make_dir
+
+    rm -f make.inc make.intel_intelmpi
+    wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.inc
+    wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.intel_intelmpi
+
+    make -f TopMakefileOasis3 static-libs-fortran
+    cp ../../INSTALL_OASIS/lib/*.a $DEPS_DIR/lib
+    # now module/include files to copy?
+
+################################################
 
 # Check chosen library is available:
 if [ $ubuntu_major -lt 18 ]; then
