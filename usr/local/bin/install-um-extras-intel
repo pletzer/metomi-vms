@@ -281,44 +281,44 @@ make install
 cd ../..
 rm -rf eccodes-${ECCODES_VERSION}-Source
 
-# shumlib
-cd $DEPS_DIR
-wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
-tar xf um${SHUMLIB_VERSION}.tar.gz
-rm um${SHUMLIB_VERSION}.tar.gz
-cd shumlib-um${SHUMLIB_VERSION}
-export SHUM_OPENMP=true
-export LIBDIR_OUT=$DEPS_DIR
-cat make/vm-x86-gfortran-gcc.mk | \
-    perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
-        > make/vm-x86-ifort-icc.mk
+# # shumlib
+# cd $DEPS_DIR
+# wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
+# tar xf um${SHUMLIB_VERSION}.tar.gz
+# rm um${SHUMLIB_VERSION}.tar.gz
+# cd shumlib-um${SHUMLIB_VERSION}
+# export SHUM_OPENMP=true
+# export LIBDIR_OUT=$DEPS_DIR
+# cat make/vm-x86-gfortran-gcc.mk | \
+#     perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
+#         > make/vm-x86-ifort-icc.mk
 
-for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
-            'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
-            'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
-            'shum_spiral_search' 'shum_thread_utils'; do
-        echo $lib
-        make -f make/vm-x86-ifort-icc.mk $lib
-done
-cd ..
-rm -rf shumlib-um${SHUMLIB_VERSION}
+# for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
+#             'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
+#             'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
+#             'shum_spiral_search' 'shum_thread_utils'; do
+#         echo $lib
+#         make -f make/vm-x86-ifort-icc.mk $lib
+# done
+# cd ..
+# rm -rf shumlib-um${SHUMLIB_VERSION}
 
-# OASIS-MTC
-cd $DEPS_DIR
-#git clone --branch OASIS3-MCT_$OASIS_MCT_VERSION https://gitlab.com/cerfacs/oasis3-mct.git
-git clone https://gitlab.com/cerfacs/oasis3-mct.git
-cd oasis3-mct
-git fetch --all
-git checkout OASIS3-MCT_$OASIS_MCT_VERSION
-cd util/make_dir
+# # OASIS-MTC
+# cd $DEPS_DIR
+# #git clone --branch OASIS3-MCT_$OASIS_MCT_VERSION https://gitlab.com/cerfacs/oasis3-mct.git
+# git clone https://gitlab.com/cerfacs/oasis3-mct.git
+# cd oasis3-mct
+# git fetch --all
+# git checkout OASIS3-MCT_$OASIS_MCT_VERSION
+# cd util/make_dir
 
-rm -f make.inc make.intel_intelmpi
-wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.inc
-wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.intel_intelmpi
+# rm -f make.inc make.intel_intelmpi
+# wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.inc
+# wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.intel_intelmpi
 
-make -f TopMakefileOasis3 static-libs-fortran
-cp ../../INSTALL_OASIS/lib/*.a $DEPS_DIR/lib
-# now module/include files to copy?
+# make -f TopMakefileOasis3 static-libs-fortran
+# cp ../../INSTALL_OASIS/lib/*.a $DEPS_DIR/lib
+# # now module/include files to copy?
 
 ################################################
 
@@ -374,7 +374,7 @@ elif [ $ubuntu_major -eq 22 ]; then
     mkdir -p build && cd build
     # can't put directly into /usr
     mkdir -p /usr/src/eccodes
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/src/eccodes -DENABLE_JPG=ON ../.
+    FC=$FC CC=$CC CXX=$CXX cmake -DCMAKE_INSTALL_PREFIX=/usr/src/eccodes -DENABLE_JPG=ON ../.
     make
     ctest
     make install
