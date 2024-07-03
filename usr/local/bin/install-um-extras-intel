@@ -154,6 +154,9 @@ make install
 cd ..
 rm -rf libpng-${LIBPNG_VERSION}
 
+# required by netcdf
+apt-get -y install libcurl4-openssl-dev
+
 # jasper
 cd $DEPS_DIR
 wget https://www2.mmm.ucar.edu/wrf/OnLineTutorial/compile_tutorial/tar_files/jasper-${JASPER_VERSION}.tar.gz
@@ -264,58 +267,58 @@ make install
 cd ../..
 rm -rf libaec-v${LIBAEC_VERSION}
 
-    # ecCodes
-    cd $DEPS_DIR
-    wget https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz
-    tar xvf eccodes-${ECCODES_VERSION}-Source.tar.gz
-    rm eccodes-${ECCODES_VERSION}-Source.tar.gz
-    cd eccodes-${ECCODES_VERSION}-Source
-    mkdir build
-    cd build
-    FC=$FC CC=$CC CXX=$CXX cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
-    make 
-    make install
-    cd ../..
-    rm -rf eccodes-${ECCODES_VERSION}-Source
+# ecCodes
+cd $DEPS_DIR
+wget https://confluence.ecmwf.int/download/attachments/45757960/eccodes-${ECCODES_VERSION}-Source.tar.gz
+tar xvf eccodes-${ECCODES_VERSION}-Source.tar.gz
+rm eccodes-${ECCODES_VERSION}-Source.tar.gz
+cd eccodes-${ECCODES_VERSION}-Source
+mkdir build
+cd build
+FC=$FC CC=$CC CXX=$CXX cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
+make 
+make install
+cd ../..
+rm -rf eccodes-${ECCODES_VERSION}-Source
 
-    # shumlib
-    cd $DEPS_DIR
-    wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
-    tar xf um${SHUMLIB_VERSION}.tar.gz
-    rm um${SHUMLIB_VERSION}.tar.gz
-    cd shumlib-um${SHUMLIB_VERSION}
-    export SHUM_OPENMP=true
-    export LIBDIR_OUT=$DEPS_DIR
-    cat make/vm-x86-gfortran-gcc.mk | \
-        perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
-         > make/vm-x86-ifort-icc.mk
+# shumlib
+cd $DEPS_DIR
+wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
+tar xf um${SHUMLIB_VERSION}.tar.gz
+rm um${SHUMLIB_VERSION}.tar.gz
+cd shumlib-um${SHUMLIB_VERSION}
+export SHUM_OPENMP=true
+export LIBDIR_OUT=$DEPS_DIR
+cat make/vm-x86-gfortran-gcc.mk | \
+    perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
+        > make/vm-x86-ifort-icc.mk
 
-    for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
-               'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
-               'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
-               'shum_spiral_search' 'shum_thread_utils'; do
-            echo $lib
-            make -f make/vm-x86-ifort-icc.mk $lib
-    done
-    cd ..
-    rm -rf shumlib-um${SHUMLIB_VERSION}
+for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
+            'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
+            'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
+            'shum_spiral_search' 'shum_thread_utils'; do
+        echo $lib
+        make -f make/vm-x86-ifort-icc.mk $lib
+done
+cd ..
+rm -rf shumlib-um${SHUMLIB_VERSION}
 
-    # OASIS-MTC
-    cd $DEPS_DIR
-    #git clone --branch OASIS3-MCT_$OASIS_MCT_VERSION https://gitlab.com/cerfacs/oasis3-mct.git
-    git clone https://gitlab.com/cerfacs/oasis3-mct.git
-    cd oasis3-mct
-    git fetch --all
-    git checkout OASIS3-MCT_$OASIS_MCT_VERSION
-    cd util/make_dir
+# OASIS-MTC
+cd $DEPS_DIR
+#git clone --branch OASIS3-MCT_$OASIS_MCT_VERSION https://gitlab.com/cerfacs/oasis3-mct.git
+git clone https://gitlab.com/cerfacs/oasis3-mct.git
+cd oasis3-mct
+git fetch --all
+git checkout OASIS3-MCT_$OASIS_MCT_VERSION
+cd util/make_dir
 
-    rm -f make.inc make.intel_intelmpi
-    wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.inc
-    wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.intel_intelmpi
+rm -f make.inc make.intel_intelmpi
+wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.inc
+wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/oasis/packages/oasis3-mct/make.intel_intelmpi
 
-    make -f TopMakefileOasis3 static-libs-fortran
-    cp ../../INSTALL_OASIS/lib/*.a $DEPS_DIR/lib
-    # now module/include files to copy?
+make -f TopMakefileOasis3 static-libs-fortran
+cp ../../INSTALL_OASIS/lib/*.a $DEPS_DIR/lib
+# now module/include files to copy?
 
 ################################################
 
