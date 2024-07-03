@@ -155,7 +155,7 @@ cd ..
 rm -rf libpng-${LIBPNG_VERSION}
 
 # required by netcdf
-apt-get -y install libcurl4-openssl-dev
+apt-get -y install libcurl4-openssl-dev libxml2-dev libsz2 libbz2-dev zlib1g zlib1g-dev
 
 # jasper
 cd $DEPS_DIR
