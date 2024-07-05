@@ -9,34 +9,11 @@ if [[ $dist == redhat && $release != centos7 ]]; then
   yum install -y xauth || error
 fi
 
-#### Install commonly used editors
-if [[ $dist == ubuntu ]]; then
-  apt-get install -q -y vim-gtk emacs || error
-  # Set the default editor in .profile
-  if [[ $release != 2204 ]]; then
-    apt-get install -q -y leafpad || error
-    echo "export EDITOR=leafpad" >>.profile
-  else
-    apt-get install -q -y featherpad || error
-    echo "export EDITOR=featherpad" >>.profile
-  fi
-elif [[ $dist == redhat ]]; then
-  yum install -y gvim emacs || error
-  # Set the default editor in .bash_profile
-  if [[ $release == fedora* ]]; then
-    yum install -y leafpad || error
-    echo "export EDITOR=leafpad" >>.bash_profile
-  else
-    echo "export EDITOR=emacs" >>.bash_profile
-  fi
-fi
-
 #### Install FCM dependencies & configuration
 if [[ $dist == ubuntu ]]; then
   apt-get install -q -y subversion chromium-browser tkcvs tk libxml-parser-perl || error
   xdg-settings set default-web-browser chromium-browser.desktop
   apt-get install -q -y m4 libconfig-inifiles-perl libdbi-perl g++ libsvn-perl || error
-  apt-get install -q -y xxdiff || error
 elif [[ $dist == redhat ]]; then
   yum install -y subversion firefox perl-core perl-XML-Parser || error
   if [[ $release == centos8 ]]; then
@@ -64,9 +41,9 @@ fi
 
 #### Install Cylc dependencies & configuration
 if [[ $dist == ubuntu ]]; then
-  apt-get install -q -y at python-pip  || error
-  service atd start || error
-  if [[ $release != 2204 ]]; then
+  #apt-get install -q -y python-pip  || error
+  #if [[ $release != 2204 ]]; then
+  if [[ $realease == 1804 ]]; then
     apt-get install -q -y graphviz python-jinja2 python-pygraphviz python-gtk2 sqlite3 || error
   else
     apt-get install -q -y graphviz graphviz-dev python2-dev sqlite3 || error
@@ -139,7 +116,8 @@ if [[ $dist == ubuntu ]]; then
   apt-get install -q -y pcregrep || error
   apt-get install -q -y lxterminal || error # rose edit is configured to use this
   apt-get install -q -y tidy || error
-  if [[ $release != 2204 ]]; then
+  #if [[ $release != 2204 ]]; then
+  if [[ $request == 1804 ]]; then
     apt-get install -q -y python-requests || error
     apt-get install -q -y python-virtualenv || error # needed by rose make-docs
     pip install mock pytest-tap || error # used by test-battery
@@ -212,7 +190,8 @@ ln -sf /opt/cylc-7 /opt/cylc
 
 #### Configure cylc review & rosie web services (with a local rosie repository)
 if [[ $dist == ubuntu ]]; then
-  if [[ $release != 2204 ]]; then
+  #if [[ $release != 2204 ]]; then
+  if [[ $release == 1804 ]]; then
     apt-get install -q -y apache2 libapache2-mod-wsgi python-cherrypy3 apache2-utils python-sqlalchemy || error
   else
     apt-get install -q -y apache2 apache2-dev apache2-utils || error
