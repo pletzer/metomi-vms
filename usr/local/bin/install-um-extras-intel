@@ -119,7 +119,7 @@ ECCODES_VERSION="2.35.0"
 SHUMLIB_VERSION="13.0"
 OASIS_MCT_VERSION="5.1"
 
-export DEPS_DIR=/usr/local/intel
+export DEPS_DIR=/usr/local/
 
 # compilers
 # cannot yet use icx and icpx
