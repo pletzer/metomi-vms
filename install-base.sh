@@ -43,7 +43,7 @@ fi
 if [[ $dist == ubuntu ]]; then
   #apt-get install -q -y python-pip  || error
   #if [[ $release != 2204 ]]; then
-  if [[ $realease == 1804 ]]; then
+  if [[ $release == 1804 ]]; then
     apt-get install -q -y graphviz python-jinja2 python-pygraphviz python-gtk2 sqlite3 || error
   else
     apt-get install -q -y graphviz graphviz-dev python2-dev sqlite3 || error

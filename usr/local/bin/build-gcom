@@ -1,6 +1,6 @@
 
 
-fc co fcm:gcom.x/trunk@head gcom
+fcm co fcm:gcom.x/trunk@head gcom
 cd gcom
 gcom_src=$(pwd)
 
