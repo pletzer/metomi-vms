@@ -119,10 +119,6 @@ ECCODES_VERSION="2.35.0"
 SHUMLIB_VERSION="13.0"
 OASIS_MCT_VERSION="5.1"
 
-# TO CHANGE
-SHUMLIB_SRC="/home/pletzera/shumlib"
-GCOM_SRC="/home/pletzera/gcom"
-
 export DEPS_DIR=/usr/local/intel
 
 # compilers
@@ -141,20 +137,6 @@ export HDF5=$DEPS_DIR
 export PNETCDF=$DEPS_DIR
 
 export LD_LIBRARY_PATH="$DEPS_DIR/lib:$LD_LIBRARY_PATH"
-
-# run some checks
-if [ ! -d $SHUMLIB_SRC ]; then
-  echo "ERROR: directory $SHUMLIB_SRC does not exist!"
-  echo "Download shumlib using command:"
-  echo "cd $HOME; fcm co fcm:shumlib.x/trunk@HEAD shumlib"
-  exit 1
-fi
-if [ ! -d $GCOM_SRC ]; then
-  echo "ERROR: directory $GCOM_SRC does not exist!"
-  echo "Download gcom using command:"
-  echo "cd $HOME; fcm co fcm:gcom.x/trunk@HEAD gcom"
-  exit 1
-fi
 
 mkdir -p $DEPS_DIR
 mkdir -p ${DEPS_DIR}/bin
@@ -299,74 +281,6 @@ make install
 cd ../..
 rm -rf eccodes-${ECCODES_VERSION}-Source
 
-# shumlib
-cd $DEPS_DIR
-fcm co fcm:shumlib.x/trunk@HEAD shumlib
-cd shumlib
-vm_config='ssec-ifort-icc'
-echo "Building Shumlib dependencies"
-
-# shumlib is built twice, with and without OpenMP:
-for shum_omp in true false; do
-    omp=no-openmp
-    if $shum_omp; then
-        omp=openmp
-    fi
-    install_dir="/usr/local/intel/shumlib/$vn/$vm_config/$omp"
-    mkdir -p "$install_dir"
-    # Remove any previous builds
-    make -f make/${vm_config}.mk clean > /dev/null 2>&1 
-    # Build the library
-    echo
-    echo "Building Shumlib $omp library..."
-    echo "Make output at $install_dir/make.log"
-    SHUM_OPENMP=$shum_omp make -f make/${vm_config}.mk &> "$install_dir/make.log"
-    if [ $? -ne 0 ]; then
-        echo "Shumlib $omp build failed."
-        exit 1
-    else
-        echo "Shumlib $omp build completed successfully."
-    fi
-    # Test the library
-    echo "Testing Shumlib $omp library..."
-    echo "Test output at $install_dir/test.log"
-    SHUM_OPENMP=$shum_omp make -f make/${vm_config}.mk test &> "$install_dir/test.log"
-    if [ $? -ne 0 ]; then
-        echo "Shumlib $omp tests failed."
-        exit 1
-    else
-        echo "Shumlib $omp built-in tests passed."
-    fi
-    # Copy the library to UMDIR
-    cp -r build/$vm_config/* $install_dir || echo "Failed to install Shumlib $omp library"
-done
-# Clean
-cd $DEPS_DIR
-rm -rf shumlib
-
-
-
-# # shumlib
-# cd $DEPS_DIR
-# wget https://github.com/metomi/shumlib/archive/refs/tags/um${SHUMLIB_VERSION}.tar.gz
-# tar xf um${SHUMLIB_VERSION}.tar.gz
-# rm um${SHUMLIB_VERSION}.tar.gz
-# cd shumlib-um${SHUMLIB_VERSION}
-# export SHUM_OPENMP=true
-# export LIBDIR_OUT=$DEPS_DIR
-# cat make/vm-x86-gfortran-gcc.mk | \
-#     perl -ne "s/gfortran/$FC/g;s/gcc/$CC/g;s/\-fopenmp/-qopenmp/g;s/\-std=f2008ts/-std08/g;s/\-pedantic-errors//;s/\-pedantic//;s/\-fno-range-check//;print;" \
-#         > make/vm-x86-ifort-icc.mk
-
-# for lib in 'shum_byteswap' 'shum_data_conv' 'shum_fieldsfile_class' \
-#             'shum_latlon_eq_grids' 'shum_string_conv' 'shum_wgdos_packing' \
-#             'shum_constants' 'shum_fieldsfile' 'shum_horizontal_field_interp' \
-#             'shum_spiral_search' 'shum_thread_utils'; do
-#         echo $lib
-#         make -f make/vm-x86-ifort-icc.mk $lib
-# done
-# cd ..
-# rm -rf shumlib-um${SHUMLIB_VERSION}
 
 # # OASIS-MTC
 # cd $DEPS_DIR
