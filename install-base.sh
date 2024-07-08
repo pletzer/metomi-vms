@@ -46,13 +46,15 @@ if [[ $dist == ubuntu ]]; then
   if [[ $release == 1804 ]]; then
     apt-get install -q -y graphviz python-jinja2 python-pygraphviz python-gtk2 sqlite3 || error
   else
+    apt-get install -q -y python2-dev || error
     if [[ $release == 2004 ]]; then
       # https://stackoverflow.com/questions/65869381/pip2-installation-on-ubuntu-20-04
       echo "Installing pip2 on Ubuntu 20.04..."
       wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
       python2 get-pip.py
+      rm get-pip.py
     fi
-    apt-get install -q -y graphviz graphviz-dev python2-dev sqlite3 || error
+    apt-get install -q -y graphviz graphviz-dev sqlite3 || error
     pip2 install jinja2 || error
     pip2 install "pyOpenSSL<19.1" || error
     pip2 install pygraphviz \
