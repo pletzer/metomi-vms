@@ -14,7 +14,7 @@ cp fcm-make/machines/uoe_dirac_ifort_serial.cfg fcm-make/machines/vm_gfortran_se
 sed -i '/mirror/d' fcm-make/machines/vm_gfortran_serial.cfg
 
 # buid and test
-rose stem --quiet --group=all --name=gcom_install --new --no-gcontrol -- --no-detach
+rose stem --group=all --name=gcom_install --new --no-gcontrol -- --no-detach
 if [ $? -ne 0 ]; then
   echo "Problem running GCOM rose stem suite."
   echo "Check suite logs and output at $HOME/cylc-run/gcom_install"
