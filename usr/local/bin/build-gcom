@@ -1,13 +1,18 @@
 
 
-fcm co fcm:gcom.x/trunk@head gcom
+##fcm co fcm:gcom.x/trunk@head gcom
+fcm co fcm:gcom.x/trunk@357 gcom
 cd gcom
 gcom_src=$(pwd)
 
 # save the config files
+cp rose-stem/rose-suite.conf rose-stem/rose-suite.conf.ori
 cp fcm-make/machines/vm_gfortran_mpich3.cfg fcm-make/machines/vm_gfortran_mpich3.cfg.ori
 cp fcm-make/machines/vm_gfortran_serial.cfg fcm-make/machines/vm_gfortran_serial.cfg.ori
 cp fcm-make/machines/vm32B_gfortran_serial.cfg fcm-make/machines/vm32B_gfortran_serial.cfg.ori
+
+# add a slash
+sed -i 's#gcom_rosestem#gcom_rosestem/#g' rose-stem/rose-suite.conf
 # we're using the Intel compiler
 cp fcm-make/machines/uoe_dirac_ifort_impi.cfg fcm-make/machines/vm_gfortran_mpich3.cfg
 sed -i '/mirror/d' fcm-make/machines/vm_gfortran_mpich3.cfg
@@ -18,6 +23,11 @@ sed -i 's/\-[ir]8//g' fcm-make/machines/vm32B_gfortran_serial.cfg
 sed -i 's/ifort_serial/ifort_serial32/g' fcm-make/machines/vm32B_gfortran_serial.cfg
 sed -i '/mirror/d' fcm-make/machines/vm32B_gfortran_serial.cfg
 sed -i 's/PREC_64B/PREC_32B/g' fcm-make/machines/vm32B_gfortran_serial.cfg
+
+# -openmp -> -qopenmp
+for f in vm_gfortran_mpich3.cfg vm_gfortran_serial.cfg vm32B_gfortran_serial.cfg; do
+    sed -i 's/\-openmp/-qopenmp/g' fcm-make/machines/$f
+done
 
 # buid and test
 rose stem --group=all --name=gcom_install --new --no-gcontrol -- --no-detach
