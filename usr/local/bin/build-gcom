@@ -29,20 +29,22 @@ for f in vm_gfortran_mpich3.cfg vm_gfortran_serial.cfg vm32B_gfortran_serial.cfg
     sed -i 's/\-openmp/-qopenmp/g' fcm-make/machines/$f
 done
 
+target="gcom6.2"
+
 # buid and test
-rose stem --group=all --name=gcom_install --new --no-gcontrol -- --no-detach
+rose stem --group=all --name=$target --new --no-gcontrol -- --no-detach
 if [ $? -ne 0 ]; then
   echo "Problem running GCOM rose stem suite."
-  echo "Check suite logs and output at $HOME/cylc-run/gcom_install"
-  echo "or try http://localhost/cylc-review/taskjobs/$USER?&suite=gcom_install."
+  echo "Check suite logs and output at $HOME/cylc-run/$target"
+  echo "or try http://localhost/cylc-review/taskjobs/$USER?&suite=$target."
   exit 1
 fi
 
 # copy dirs to right place (remember may have to overwrite...)
-cdir="$HOME/cylc-run/gcom_install/work"
+cdir="$HOME/cylc-run/$target/work"
 
 cd $cdir
-prefix="gcom_rosestem"
+prefix="gcom_rosestem/"
 mpichdir="vm_gfortran_mpich3/build"
 serialdir="vm_gfortran_serial/build"
 serial32dir="vm32B_gfortran_serial/build"
@@ -57,14 +59,17 @@ install_dir=$gcom_src/install
 mkdir -p install_dir
 
 rm -rf $install_dir/*  # Remove any existing installation
-mkdir -p $install_dir/$mpichdir
-mkdir -p $install_dir/$serialdir
-mkdir -p $install_dir/$serial32dir
-cp -r $prefix$mpichdir/* $install_dir/$mpichdir || echo "Failed to install parallel GCOM library"
-cp -r $prefix$serialdir/* $install_dir/$serialdir || echo "Failed to install serial GCOM library"
-cp -r $prefix$serial32dir/* $install_dir/$serial32dir || echo "Failed to install 32-bit serial GCOM library"
+mpichdir2="vm_ifort_impi/build"
+serialdir2="vm_ifort_serial/build"
+serial32dir2="vm32B_ifort_serial/build"
+mkdir -p $install_dir/$mpichdir2
+mkdir -p $install_dir/$serialdir2
+mkdir -p $install_dir/$serial32dir2
+cp -r $prefix$mpichdir/* $install_dir/$mpichdir2 || echo "Failed to install parallel GCOM library"
+cp -r $prefix$serialdir/* $install_dir/$serialdir2 || echo "Failed to install serial GCOM library"
+cp -r $prefix$serial32dir/* $install_dir/$serial32dir2 || echo "Failed to install 32-bit serial GCOM library"
 
 # Clean up
-rm -rf $tmpdir
+#rm -rf $tmpdir
 
 echo "GCOM library has been installed under $install_dir"
