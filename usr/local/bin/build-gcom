@@ -1,38 +1,15 @@
 
 
 ##fcm co fcm:gcom.x/trunk@head gcom
-fcm co fcm:gcom.x/trunk@357 gcom
+##fcm co fcm:gcom.x/trunk@357 gcom
+fcm co fcm:gcom.x/branches/dev/andrewpauling/vn6.2_apptainer_port gcom
 cd gcom
 gcom_src=$(pwd)
-
-# save the config files
-cp rose-stem/rose-suite.conf rose-stem/rose-suite.conf.ori
-cp fcm-make/machines/vm_gfortran_mpich3.cfg fcm-make/machines/vm_gfortran_mpich3.cfg.ori
-cp fcm-make/machines/vm_gfortran_serial.cfg fcm-make/machines/vm_gfortran_serial.cfg.ori
-cp fcm-make/machines/vm32B_gfortran_serial.cfg fcm-make/machines/vm32B_gfortran_serial.cfg.ori
-
-# add a slash
-sed -i 's#gcom_rosestem#gcom_rosestem/#g' rose-stem/rose-suite.conf
-# we're using the Intel compiler
-cp fcm-make/machines/uoe_dirac_ifort_impi.cfg fcm-make/machines/vm_gfortran_mpich3.cfg
-sed -i '/mirror/d' fcm-make/machines/vm_gfortran_mpich3.cfg
-cp fcm-make/machines/uoe_dirac_ifort_serial.cfg fcm-make/machines/vm_gfortran_serial.cfg
-sed -i '/mirror/d' fcm-make/machines/vm_gfortran_serial.cfg
-cp fcm-make/machines/uoe_dirac_ifort_serial.cfg fcm-make/machines/vm32B_gfortran_serial.cfg
-sed -i 's/\-[ir]8//g' fcm-make/machines/vm32B_gfortran_serial.cfg
-sed -i 's/ifort_serial/ifort_serial32/g' fcm-make/machines/vm32B_gfortran_serial.cfg
-sed -i '/mirror/d' fcm-make/machines/vm32B_gfortran_serial.cfg
-sed -i 's/PREC_64B/PREC_32B/g' fcm-make/machines/vm32B_gfortran_serial.cfg
-
-# -openmp -> -qopenmp
-for f in vm_gfortran_mpich3.cfg vm_gfortran_serial.cfg vm32B_gfortran_serial.cfg; do
-    sed -i 's/\-openmp/-qopenmp/g' fcm-make/machines/$f
-done
 
 target="gcom6.2"
 
 # buid and test
-rose stem --group=all --name=$target --new --no-gcontrol -- --no-detach
+rose stem --group=test --name=$target --new --no-gcontrol -- --no-detach
 if [ $? -ne 0 ]; then
   echo "Problem running GCOM rose stem suite."
   echo "Check suite logs and output at $HOME/cylc-run/$target"
@@ -41,35 +18,28 @@ if [ $? -ne 0 ]; then
 fi
 
 # copy dirs to right place (remember may have to overwrite...)
-cdir="$HOME/cylc-run/$target/work"
+cdir="$HOME/cylc-run/$target/share"
 
 cd $cdir
-prefix="gcom_rosestem/"
-mpichdir="vm_gfortran_mpich3/build"
-serialdir="vm_gfortran_serial/build"
-serial32dir="vm32B_gfortran_serial/build"
-if [ -d "$prefix$mpichdir" ] || [ -d "$prefix$serialdir" ] || [ -d "$prefix$serial32dir" ]; then
+mpichdir="apptainer_linux_ifort_impi"
+serialdir="apptainer_linux_ifort_serial"
+serial32dir="apptainer32B_linux_ifort_serial"
+if [ -d "$mpichdir" ] || [ -d "$serialdir" ] || [ -d "$serial32dir" ]; then
   echo "Found one or more GCOM build directories to install"
 else
   echo "Cannot find a GCOM build in $cdir"
   exit 1
 fi
 
-install_dir=$gcom_src/install
-mkdir -p install_dir
+install_dir="$UMDIR/gcom/6.2"
+if [ -d "$install_dir" ]; then
+  rm -rf $install_dir
+else
+  mkdir -p $install_dir
+fi
 
-rm -rf $install_dir/*  # Remove any existing installation
-mpichdir2="vm_ifort_impi/build"
-serialdir2="vm_ifort_serial/build"
-serial32dir2="vm32B_ifort_serial/build"
-mkdir -p $install_dir/$mpichdir2
-mkdir -p $install_dir/$serialdir2
-mkdir -p $install_dir/$serial32dir2
-cp -r $prefix$mpichdir/* $install_dir/$mpichdir2 || echo "Failed to install parallel GCOM library"
-cp -r $prefix$serialdir/* $install_dir/$serialdir2 || echo "Failed to install serial GCOM library"
-cp -r $prefix$serial32dir/* $install_dir/$serial32dir2 || echo "Failed to install 32-bit serial GCOM library"
-
-# Clean up
-#rm -rf $tmpdir
+cp -r $mpichdir $install_dir/. || echo "Failed to install parallel GCOM library"
+cp -r $serialdir $install_dir/. || echo "Failed to install serial GCOM library"
+cp -r $serial32dir $install_dir/. || echo "Failed to install 32-bit serial GCOM library"
 
 echo "GCOM library has been installed under $install_dir"
