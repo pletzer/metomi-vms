@@ -47,9 +47,9 @@ if [[ $dist == ubuntu ]]; then
     apt-get install -q -y graphviz python-jinja2 python-pygraphviz python-gtk2 sqlite3 || error
   else
     apt-get install -q -y python2-dev || error
-    if [[ $release == 2004 ]]; then
-      # https://stackoverflow.com/questions/65869381/pip2-installation-on-ubuntu-20-04
-      echo "Installing pip2 on Ubuntu 20.04..."
+    if [[ $release == 2004 || $release == 2204 ]]; then
+      # https://stackoverflow.com/questions/65869381/pip2-installation-on-ubuntu-2004
+      echo "Installing pip2..."
       wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
       python2 get-pip.py
       rm get-pip.py
