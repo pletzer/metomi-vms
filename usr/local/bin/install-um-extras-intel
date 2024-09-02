@@ -141,6 +141,9 @@ export LD_LIBRARY_PATH="$DEPS_DIR/lib:$LD_LIBRARY_PATH"
 mkdir -p $DEPS_DIR
 mkdir -p ${DEPS_DIR}/bin
 
+export CFLAGS="-Ofast -mavx -axCORE-AVX2,CORE-AVX512"
+export FFLAGS="-Ofast -mavx -axCORE-AVX2,CORE-AVX512"
+export CXXFLAGS="-Ofast -mavx -axCORE-AVX2,CORE-AVX512"
 
 # libpng
 cd $DEPS_DIR
@@ -261,7 +264,7 @@ rm libaec-v${LIBAEC_VERSION}.tar.gz
 cd libaec-v${LIBAEC_VERSION}/
 mkdir build
 cd build/
-FC=$FC CC=$CC CXX=$CXX  cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
+FC=$FC CC=$CC CXX=$CXX  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEPS_DIR ..
 make
 make install
 cd ../..
@@ -275,7 +278,7 @@ rm eccodes-${ECCODES_VERSION}-Source.tar.gz
 cd eccodes-${ECCODES_VERSION}-Source
 mkdir build
 cd build
-FC=$FC CC=$CC CXX=$CXX cmake -D CMAKE_INSTALL_PREFIX=$DEPS_DIR ..
+FC=$FC CC=$CC CXX=$CXX cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$DEPS_DIR ..
 make 
 make install
 cd ../..
